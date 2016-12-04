@@ -1,0 +1,16 @@
+Private Sub Worksheet_Change(ByVal Target As Range)
+    If Intersect(Target, Range("C2:C3")) Is Nothing Then
+        Exit Sub
+    Else
+        Call Macro1
+    End If
+End Sub
+Private Sub Worksheet_BeforeDoubleClick(ByVal Target As Range, Cancel As Boolean)
+    If Intersect(Target, Range("F2", Range("F2").Offset(row - 1, col - 1))) Is Nothing Then
+        Exit Sub
+    Else
+        Call Macro3(Target)
+        Cancel = True
+    End If
+End Sub
+

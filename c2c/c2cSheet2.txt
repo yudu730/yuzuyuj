@@ -1,0 +1,5 @@
+Private Sub Worksheet_BeforeDoubleClick(ByVal Target As Range, Cancel As Boolean)
+    If Target.row >= 3 And Target.row <= 500 And Target.Column = 2 And Range("A2") = True Then
+        Call Macro8(Target)
+    End If
+ End Sub

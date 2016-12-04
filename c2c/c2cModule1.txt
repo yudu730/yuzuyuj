@@ -1,0 +1,325 @@
+Option Explicit
+Public row As Integer
+Public col As Integer
+Dim tarRow As Byte
+Dim tarCol As Byte
+Dim i As Byte
+Dim j As Byte
+Dim cnt As Integer
+Dim ninzuTot As Integer
+Dim chairTbl(255, 255) As Byte
+Dim ranName(255) As String
+Dim frdTbl(255) As Byte
+Dim frdRow As Byte
+Dim frdNum As Byte
+Dim rn As Byte
+Dim tmp As String
+Sub Macro1()
+'行数列数取得
+col = Range("C2")
+row = Range("C3")
+'合計人数表示
+ninzuTot = row * col
+Range("C5").Value = ninzuTot
+
+Call Macro2 '外見設定
+
+'テーブル初期化
+Erase chairTbl
+
+'テーブル設定
+For i = 1 To row
+    For j = 1 To col
+        chairTbl(i, j) = 1
+    Next
+Next
+
+End Sub
+Sub Macro2() '外見設定
+
+Dim bs As Borders
+
+'罫線を初期化
+Range("E2:IY255").ClearFormats
+
+'色を初期化
+Range("E2:IY255").Interior.Color = RGB(197, 217, 241)
+
+'罫線を設定
+Set bs = Range("F2", Range("F2").Offset(row - 1, col - 1)).Borders
+bs.LineStyle = xlContinuous
+
+'色を設定
+Range("F2", Range("F2").Offset(row - 1, col - 1)).Interior.Color = RGB(255, 255, 0)
+
+End Sub
+Sub Macro3(Target As Range)
+
+'席の列行取得
+tarRow = Target.row - 1
+tarCol = Target.Column - 5
+
+'テーブル設定
+chairTbl(tarRow, tarCol) = Abs(chairTbl(tarRow, tarCol) - 1)
+
+'使用可能人数設定
+If chairTbl(tarRow, tarCol) = 1 Then
+    ninzuTot = ninzuTot + 1
+    Target.Interior.Color = RGB(255, 255, 0)
+Else
+    ninzuTot = ninzuTot - 1
+    Target.Interior.Color = RGB(255, 255, 255)
+End If
+
+'人数出力
+Range("C5").Value = ninzuTot
+
+End Sub
+Sub Macro4()
+
+'シート２を選択
+Worksheets("Sheet2").Select
+
+'列を削除
+Columns(2).Delete
+Columns(3).Delete
+
+frdNum = 0
+
+'
+Range("B2").Value = "番号"
+Range("C2").Value = "名前"
+
+'番号の表示
+For i = 1 To ninzuTot
+    Range("B2").Offset(i, 0) = i
+Next
+
+'罫線設定
+Call Macro5
+
+'変数設定
+frdNum = 0
+
+'前の席かテーブル
+For i = 1 To i <= ninzuTot
+    frdTbl(i) = 0
+Next
+
+End Sub
+Sub Macro5() 'シート2罫線設定
+
+'B,C列の罫線削除
+Range("B:C").ClearFormats
+
+'罫線設定
+Range("B2", Range("B2").Offset(ninzuTot, 1)).Borders().Weight = xlThin
+Range("B2", Range("B2").Offset(ninzuTot, 1)).BorderAround Weight:=xlMedium
+Range("B2:C2").BorderAround Weight:=xlMedium
+
+End Sub
+Sub chairRnd()
+
+'配列に名前を入れる
+For i = 0 To ninzuTot - 1
+    ranName(i) = Range("C3").Offset(i, 0).Value
+Next
+
+'名前並び替え
+Call rand
+
+
+Call srcSty
+
+
+
+End Sub
+Sub rand() '名前ランダム並び替え
+
+
+For i = 0 To ninzuTot - 1
+    Randomize
+    rn = Int(rnd * ninzuTot)
+    tmp = ranName(i)
+    ranName(i) = ranName(rn)
+    ranName(rn) = tmp
+Next
+
+End Sub
+Sub Macro6()
+Dim result As Byte
+Dim result2 As Boolean
+result = Range("A1").Value
+result2 = Range("A2").Value
+If result = 1 And result2 = False Then
+    Call chairRnd
+ElseIf result = 2 And result2 = False Then
+    Call numSort
+ElseIf result = 2 And result2 = True Then
+    Call frdSort
+Else
+    Call frdRnd
+End If
+End Sub
+Sub numSort()
+
+'配列に名前を入れる
+For i = 0 To ninzuTot - 1
+    ranName(i) = Range("C3").Offset(i, 0).Value
+Next
+
+Call srcSty
+
+End Sub
+Sub frdSort()
+
+'
+Erase ranName
+
+'前の名前を入れる
+j = 0
+For i = 1 To ninzuTot
+    If frdTbl(i) <> 0 Then
+        ranName(j) = Range("C2").Offset(i, 0)
+        j = j + 1
+    End If
+Next
+
+'後の名前を入れる
+j = frdNum
+For i = 1 To ninzuTot
+    If frdTbl(i) = 0 Then
+        ranName(j) = Range("C2").Offset(i, 0)
+        j = j + 1
+    End If
+Next
+
+
+Call srcSty
+
+End Sub
+Sub frdRnd()
+'
+Erase ranName
+
+'前の名前を入れる
+j = 0
+For i = 1 To ninzuTot
+    If frdTbl(i) <> 0 Then
+        ranName(j) = Range("C2").Offset(i, 0)
+        j = j + 1
+    End If
+Next
+
+'後の名前を入れる
+j = frdNum
+For i = 1 To ninzuTot
+    If frdTbl(i) = 0 Then
+        ranName(j) = Range("C2").Offset(i, 0)
+        j = j + 1
+    End If
+Next
+
+'後ろをシャッフルする
+For i = frdNum To ninzuTot - 1
+    Randomize
+    rn = Int(rnd * (ninzuTot - frdNum)) + frdNum
+    tmp = ranName(i)
+    ranName(i) = ranName(rn)
+    ranName(rn) = tmp
+Next
+
+'前の数を取得
+Dim frdCnt As Byte
+frdCnt = 0
+For i = 0 To 2
+    For j = 0 To col
+        If chairTbl(i, j) = 1 Then
+            frdCnt = frdCnt + 1
+        End If
+    Next
+Next
+
+'前をシャッフル
+For i = 0 To frdCnt
+    Randomize
+    rn = Int(rnd * frdCnt)
+    tmp = ranName(i)
+    ranName(i) = ranName(rn)
+    ranName(rn) = tmp
+Next
+
+
+Call srcSty
+
+End Sub
+Sub srcSty()
+
+Worksheets("sheet3").Select
+
+
+'シート内容クリア
+ActiveSheet.Cells.Clear
+
+'罫線設定
+Range("B2", Range("B2").Offset(row - 1, col - 1)).Borders().Weight = xlThin
+
+'フォントサイズ
+Range("B2", Range("B2").Offset(row - 1, col - 1)).Font.Size = 30
+
+'中央揃え
+Range("B2", Range("B2").Offset(row - 1, col - 1)).HorizontalAlignment = xlCenter
+
+
+'名前表示
+i = 1
+j = 1
+cnt = 0
+Call Macro7
+
+
+End Sub
+Sub Macro7() '名前の表示
+
+If cnt < ninzuTot Then
+    '行をインクリメント
+    If j = col + 1 Then
+        i = i + 1
+        j = 1
+    End If
+    '１秒ごとに表示していく
+    If chairTbl(i, j) = 1 Then
+        Range("A1").Offset(i, j) = ranName(cnt)
+        Range("A1").Offset(i, j).Interior.Color = RGB(255, 255, 0)
+        cnt = cnt + 1
+        j = j + 1
+        Application.OnTime Now() + TimeValue("00:00:01"), "Macro7"
+        Exit Sub
+    End If
+
+    j = j + 1
+    Call Macro7
+End If
+End Sub
+Sub Macro8(Target As Range) '前の席を指定
+
+
+'
+frdRow = Target.row - 2
+
+If frdRow < ninzuTot + 1 Then
+    '色の変化とあれ
+    'frdTbl・前番号 デフォルト0,frdNum・前人数
+    If frdTbl(frdRow) = 0 Then
+        Range("B2").Offset(frdRow, 0).Interior.Color = RGB(255, 255, 0)
+        frdTbl(frdRow) = frdRow
+        frdNum = frdNum + 1
+    ElseIf frdTbl(frdRow) <> 0 Then
+        Range("B2").Offset(frdRow).Interior.Color = RGB(255, 255, 255)
+        frdTbl(frdRow) = frdRow
+        frdNum = frdNum - 1
+    End If
+End If
+
+
+End Sub
